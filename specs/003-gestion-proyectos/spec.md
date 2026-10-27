@@ -8,6 +8,12 @@
 
 **Input**: User description: "Mostrar proyectos reales con imágenes, descripción y enlaces, y permitir que Victor los gestione desde el panel."
 
+## Clarifications
+
+### Session 2026-10-27
+
+- Q: Si una imagen se usa en varios proyectos, ¿qué debe ocurrir al reemplazarla desde la edición de uno de ellos? → A: Cambiar solo el proyecto editado; los demás conservan la imagen anterior. El cambio público requiere publicar la nueva versión.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Explorar proyectos publicados (Priority: P1)
@@ -65,6 +71,7 @@ Como Victor quiero corregir, ordenar, retirar y eliminar proyectos para mantener
 5. **Given** solicito eliminar un proyecto, **When** cancelo la confirmación, **Then** se conserva; si confirmo, desaparece de la administración y publicación sin eliminar imágenes todavía usadas por otros proyectos.
 6. **Given** dos ediciones parten de la misma versión, **When** guardo la segunda después de otra modificación, **Then** recibo una advertencia de conflicto sin sobrescritura silenciosa.
 7. **Given** mi sesión caduca o falla la persistencia durante una modificación, **When** intento completarla, **Then** se informa que no se completó y se conserva el último estado confirmado.
+8. **Given** varios proyectos comparten una imagen, **When** la reemplazo y guardo el borrador de uno de ellos, **Then** todas las publicaciones conservan la imagen anterior; al confirmar la publicación de la nueva versión, solo el proyecto editado muestra el reemplazo y los demás conservan la imagen anterior.
 
 ### Edge Cases
 
@@ -74,6 +81,7 @@ Como Victor quiero corregir, ordenar, retirar y eliminar proyectos para mantener
 - Exactamente 5 MiB: aceptar si satisface las demás validaciones; más de 5 MiB: rechazar.
 - Enlace ausente: omitir la acción. Un enlace externo temporalmente caído no se sustituye por una dirección inventada.
 - Imagen compartida: retirar un proyecto no elimina la imagen que otra publicación sigue usando; una imagen exclusiva de un borrador no se vuelve pública.
+- Reemplazo de una imagen compartida: modificar únicamente el borrador del proyecto editado; conservar la imagen de las publicaciones vigentes hasta publicar la nueva versión y mantener sin cambios las de los demás proyectos.
 - Cuota agotada o almacenamiento indisponible: informar sin activar cargos ni confirmar un guardado inexistente.
 - Retirada y borrado: impedir nuevas entregas desde direcciones gestionadas por el sitio; no prometer eliminar copias ya descargadas por terceros.
 
@@ -95,11 +103,12 @@ Como Victor quiero corregir, ordenar, retirar y eliminar proyectos para mantener
 - **FR-012**: Correcciones aprobadas y retiradas DEBEN reflejarse en la fuente de proyectos para futuros CV; las imágenes compartidas todavía referenciadas no se eliminarán al borrar un proyecto (escenarios 3.2, 3.4 y 3.5).
 - **FR-013**: Se DEBE confirmar éxito únicamente tras persistir la operación completa; ante fallos, cuota agotada o sesión caducada se informará sin alterar el último estado confirmado ni publicar parcialmente (escenarios 2.7 y 3.7).
 - **FR-014**: El sistema DEBE detectar ediciones sobre versiones desactualizadas y evitar sobrescritura silenciosa (escenario 3.6).
+- **FR-015**: Reemplazar una imagen compartida DEBE afectar únicamente al borrador del proyecto editado. La imagen de su publicación vigente se conservará hasta confirmar la nueva publicación; las imágenes de los demás proyectos y sus versiones permanecerán sin cambios y sus archivos referenciados no se eliminarán (escenario 3.8).
 
 ### Key Entities
 
 - **Proyecto**: identidad estable, título, descripción, tecnologías, enlaces opcionales, posición editorial y estado borrador, publicado o retirado.
-- **Imagen de proyecto**: archivo, formato, tamaño, texto alternativo, orden, condición de representativa, autorización de uso y referencias desde proyectos o versiones.
+- **Imagen de proyecto**: archivo, formato, tamaño, texto alternativo, orden, condición de representativa, autorización de uso y referencias desde proyectos o versiones; un reemplazo cambia solo la referencia del proyecto editado, sin modificar el archivo compartido que otros proyectos o versiones conservan.
 - **Versión editorial**: contenido de un proyecto en borrador o aprobado, fecha y aprobación de Victor; permite diferenciar cambios pendientes de una publicación vigente.
 - **Publicación**: versión aprobada visible, fecha y vigencia; fuente compartida por galería, ficha y consumidores del CV.
 
@@ -115,6 +124,7 @@ Como Victor quiero corregir, ordenar, retirar y eliminar proyectos para mantener
 - **SC-006**: Los flujos completos presentan cero incumplimientos aplicables de WCAG 2.1 A y AA tras revisión automática y manual con teclado y lector de pantalla.
 - **SC-007**: Con textos e imágenes preparados, Victor crea, revisa y publica un proyecto sin ayuda externa en un máximo de cinco minutos y puede explicar la diferencia entre guardar borrador y publicar.
 - **SC-008**: El 100 % de fallos de carga, persistencia, cuota o sesión evaluados evita publicaciones parciales y confirmaciones falsas de éxito.
+- **SC-009**: En el 100 % de reemplazos de imágenes compartidas evaluados, guardar el borrador modifica cero imágenes públicas; publicar cambia solo la imagen del proyecto editado y conserva las imágenes y los archivos referenciados por los demás proyectos.
 
 ## Assumptions
 

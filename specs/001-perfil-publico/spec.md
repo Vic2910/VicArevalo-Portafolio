@@ -8,6 +8,12 @@
 
 **Input**: User description: "Presentar a Victor Rafael Arévalo Sierra, sus conocimientos y su experiencia académica mediante un portafolio honesto, moderno y accesible."
 
+## Clarifications
+
+### Session 2026-10-27
+
+- Q: ¿Qué debe ver el visitante cuando una sección de conocimientos o experiencia académica no tenga contenido publicado? → A: Ocultar la sección vacía y su enlace de navegación.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Conocer el perfil de Victor (Priority: P1)
@@ -40,7 +46,7 @@ Como visitante quiero consultar habilidades verificadas y experiencia académica
 
 1. **Given** hay conocimientos y formación publicados, **When** consulto sus secciones, **Then** veo descripciones y fechas aprobadas diferenciadas de experiencia laboral.
 2. **Given** no existe experiencia profesional, **When** consulto el perfil, **Then** no se presentan empleos, logros ni certificaciones ficticios.
-3. **Given** una sección no tiene contenido publicado, **When** consulto el sitio, **Then** esa sección se omite o presenta un estado vacío útil, sin ejemplos ficticios ni marcadores pendientes.
+3. **Given** una sección de conocimientos o experiencia académica no tiene contenido publicado, **When** consulto el sitio, **Then** esa sección y su enlace de navegación se ocultan, sin mensajes de sección vacía, ejemplos ficticios ni marcadores pendientes.
 4. **Given** hay conocimientos publicados, **When** los consulto, **Then** veo capacidades verificadas sin porcentajes arbitrarios de dominio.
 
 ---
@@ -63,7 +69,7 @@ Como visitante quiero recorrer el contenido con teclado o lector de pantalla y d
 
 ### Edge Cases
 
-- Sin contenido en una sección: ocultarla o mostrar un estado vacío útil sin ejemplos ficticios.
+- Sin contenido publicado en una sección de conocimientos o experiencia académica, incluidos los casos con solo borradores: ocultar la sección y su enlace de navegación, sin mensajes de sección vacía ni ejemplos ficticios.
 - Fallo de lectura o agotamiento de cuota gratuita: mostrar indisponibilidad de la función afectada, sin activar cargos ni sustituir datos por afirmaciones inventadas.
 - Texto extenso o enlaces largos: mantener lectura y redistribución sin recortes.
 - Resumen, institución, fechas o contactos pendientes: no publicar marcadores ni completar datos por inferencia.
@@ -80,7 +86,7 @@ Como visitante quiero recorrer el contenido con teclado o lector de pantalla y d
 - **FR-004**: El sistema DEBE ofrecer navegación coherente a proyectos, contacto y CV cuando estén disponibles, con estados claros cuando no lo estén y sin acciones que aparenten estar operativas.
 - **FR-005**: El sistema DEBE mantener jerarquía semántica, etiquetas comprensibles, mensajes de estado accesibles y diseño consistente; no usar porcentajes arbitrarios de dominio.
 - **FR-006**: El sistema DEBE cumplir todos los criterios aplicables de WCAG 2.1 A y AA: contraste 4.5:1 en texto normal, 3:1 en texto grande y 3:1 en componentes y gráficos necesarios según el contraste no textual aplicable; no transmitir información solo mediante color; respetar movimiento reducido.
-- **FR-007**: El sistema DEBE omitir campos pendientes y gestionar secciones vacías y fallos de lectura con estados útiles y accesibles, sin contenido ficticio, marcadores ni detalles privados de errores.
+- **FR-007**: El sistema DEBE omitir campos pendientes y ocultar las secciones de conocimientos o experiencia académica sin contenido publicado junto con sus enlaces de navegación, sin mensajes de sección vacía. Los fallos de lectura DEBEN mostrar estados útiles y accesibles, sin contenido ficticio, marcadores ni detalles privados de errores; no se tratarán como ausencia de contenido publicado.
 - **FR-008**: El sistema DEBE permitir navegación completa por teclado, con foco visible y orden lógico, lectura asistida y uso con texto al 200 % y ancho de 320 píxeles CSS, sin pérdidas de información o controles, salvo excepciones normativas justificadas.
 
 ### Key Entities
@@ -96,7 +102,7 @@ Como visitante quiero recorrer el contenido con teclado o lector de pantalla y d
 - **SC-001**: El 100 % del contenido visible coincide con datos aprobados y no contiene marcadores pendientes; ningún borrador ni dato privado es accesible al visitante.
 - **SC-002**: Todas las secciones y controles son recorribles por teclado y comprensibles con lector de pantalla, sin incumplimientos aplicables de WCAG 2.1 AA.
 - **SC-003**: El perfil conserva contenido y controles al 200 % de texto y 320 píxeles CSS, con las excepciones normativas justificadas.
-- **SC-004**: En todos los escenarios de aceptación de secciones vacías, fallos de lectura y destinos no disponibles, el visitante encuentra el estado previsto sin afirmaciones inventadas ni acciones que aparenten funcionar; todos los destinos disponibles llevan al contenido anunciado.
+- **SC-004**: En todos los escenarios de aceptación de secciones de conocimientos o experiencia académica sin contenido publicado, se ocultan tanto la sección como su enlace de navegación. Ante fallos de lectura y destinos no disponibles, el visitante encuentra el estado previsto sin afirmaciones inventadas ni acciones que aparenten funcionar; todos los destinos disponibles llevan al contenido anunciado.
 
 ## Assumptions
 

@@ -8,6 +8,12 @@
 
 **Input**: User description: "Generar un CV descargable con texto seleccionable, estructura favorable para ATS e idioma elegido por el visitante."
 
+## Clarifications
+
+### Session 2026-10-27
+
+- Q: ¿Qué proyectos publicados deben incluirse en el CV de ambos idiomas? → A: Solo los proyectos que Victor seleccione para el CV desde el panel, con un orden propio compartido por ambos idiomas e independiente de la galería.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Descargar el CV en español (Priority: P1)
@@ -61,6 +67,8 @@ Como Victor quiero que el CV refleje la última publicación con un orden de lec
 4. **Given** selecciono y extraigo el texto de cualquiera de los PDF, **When** lo leo secuencialmente, **Then** conserva nombres, tildes, encabezados, contenido y orden de secciones sin pérdidas ni intercalaciones entre columnas.
 5. **Given** hay textos extensos y saltos de página, **When** reviso el documento, **Then** no hay recortes, superposiciones ni pérdida de caracteres y la lectura continúa en orden.
 6. **Given** falla la generación o no puede obtenerse la fuente vigente, **When** solicito descargar, **Then** recibo un error accesible con opción de reintento sin PDF corrupto, confirmación falsa o entrega silenciosa de un documento obsoleto.
+7. **Given** hay proyectos publicados y soy Victor con autorización administrativa, **When** selecciono y ordeno los proyectos para el CV y confirmo esa selección, **Then** las siguientes descargas de ambos idiomas incluyen solo los proyectos seleccionados en ese orden, sin modificar el orden ni la visibilidad de la galería.
+8. **Given** hay proyectos publicados no seleccionados para el CV, **When** descargo cualquiera de los idiomas, **Then** esos proyectos no aparecen; si ningún proyecto está seleccionado, solo puede ofrecerse el idioma si una experiencia académica pertinente satisface ese mínimo junto con los demás datos obligatorios.
 
 ### Edge Cases
 
@@ -72,6 +80,8 @@ Como Victor quiero que el CV refleje la última publicación con un orden de lec
 - Publicación simultánea: usar una versión completa vigente al iniciar la generación; una solicitud posterior toma la nueva versión.
 - Idioma desconocido en una solicitud directa: indicar selección inválida sin sustituirlo silenciosamente por otro.
 - Fallo de fuente o generación: permitir reintento sin ofrecer archivos parciales ni versiones antiguas como actuales.
+- Proyecto seleccionado retirado o eliminado: excluirlo de las siguientes descargas; no sustituirlo automáticamente por otro proyecto de la galería y volver a comprobar el contenido mínimo.
+- Cambio del orden de la galería: no altera la selección ni el orden propios del CV.
 
 ## Requirements *(mandatory)*
 
@@ -89,6 +99,7 @@ Como Victor quiero que el CV refleje la última publicación con un orden de lec
 - **FR-010**: Ante fallo de generación o de acceso a la información vigente, el sistema DEBE informar sin confirmar una descarga exitosa ni entregar un archivo corrupto, parcial o silenciosamente obsoleto y permitirá reintentar (escenario 3.6).
 - **FR-011**: Si faltan datos mínimos aprobados, el sistema DEBE explicar la indisponibilidad del idioma y bloquear también su solicitud directa; los datos opcionales ausentes se omitirán (escenario 1.3 y casos de datos faltantes).
 - **FR-012**: La presentación DEBE conservar caracteres y contenido completo en textos extensos y saltos de página, sin recortes ni superposiciones que impidan leer o extraer información (escenarios 3.4 y 3.5).
+- **FR-013**: El panel DEBE permitir a Victor seleccionar y ordenar explícitamente los proyectos publicados que aparecerán en el CV, con confirmación de los cambios. Ambos idiomas DEBEN usar la misma selección y orden, independientes de la galería y tomados de la versión coherente de FR-002. Los proyectos no seleccionados, retirados o eliminados se excluirán sin sustitución automática; se comprobará de nuevo el contenido mínimo tras su exclusión (escenarios 3.7 y 3.8; escenario 3.2).
 
 ### Key Entities
 
@@ -96,6 +107,7 @@ Como Victor quiero que el CV refleje la última publicación con un orden de lec
 - **Variante lingüística**: idioma, textos revisados por sección, hechos de referencia y aprobación correspondiente a la versión vigente.
 - **Documento generado**: idioma, versión fuente, fecha de generación y PDF textual con nombre de archivo identificable.
 - **Disponibilidad de idioma**: cumplimiento de contenido mínimo, traducciones vigentes y motivo comprensible de indisponibilidad.
+- **Selección curricular de proyectos**: referencias a los proyectos elegidos por Victor, orden propio y confirmación; compartida por ambos idiomas e independiente del orden y visibilidad de la galería. Solo sus proyectos publicados vigentes se incluyen en el documento.
 
 ## Success Criteria *(mandatory)*
 
@@ -109,14 +121,15 @@ Como Victor quiero que el CV refleje la última publicación con un orden de lec
 - **SC-006**: La revisión visual de documentos de una y varias páginas en ambos idiomas detecta cero recortes, superposiciones, columnas adicionales o información esencial fuera del cuerpo de lectura.
 - **SC-007**: Los flujos completos de elección y descarga presentan cero incumplimientos aplicables de WCAG 2.1 A y AA tras revisión automática y manual con teclado y lector de pantalla.
 - **SC-008**: Con contenido aprobado de prueba y condiciones normales de conexión, el 95 % de descargas evaluadas permite obtener el documento en un máximo de diez segundos desde la solicitud; todos los fallos evaluados ofrecen error y reintento sin archivos inválidos.
+- **SC-009**: En el 100 % de descargas evaluadas, los proyectos y su orden coinciden con la selección curricular confirmada vigente al iniciar la generación, excluyendo los retirados o eliminados. Cambiar la selección del CV no altera la galería y cambiar el orden de la galería no altera el CV; español e inglés comparten la misma selección y orden.
 
 ## Assumptions
 
 - Depende del perfil de `001-perfil-publico`, la aprobación de `002-administracion` y los proyectos de `003-gestion-proyectos`. Puede evaluarse con una versión coherente de prueba sin implementar sincronización externa o asistencia de IA.
 - Victor aportará el correo público autorizado, educación, habilidades y textos aprobados de ambos idiomas. Son datos editoriales pendientes y no se inventarán; la aceptación completa exige comprobar las dos variantes.
-- El mínimo para ofrecer un idioma incluye nombre público, correo autorizado, perfil breve, educación, al menos una habilidad verificada y al menos un proyecto o experiencia académica pertinente. Los campos opcionales ausentes se omiten y las secciones vacías no se fabrican.
+- El mínimo para ofrecer un idioma incluye nombre público, correo autorizado, perfil breve, educación, al menos una habilidad verificada y al menos un proyecto publicado seleccionado para el CV o una experiencia académica pertinente. Los campos opcionales ausentes se omiten y las secciones vacías no se fabrican.
 - El orden inicial será identidad y contacto, perfil, educación, habilidades y proyectos o experiencia académica. No se impone una sola página si supone pérdida de información o legibilidad.
-- Los proyectos se representan mediante información textual pertinente; no se reproducen las imágenes de la galería. La selección curricular y sus variantes lingüísticas requieren revisión de Victor.
+- Los proyectos se representan mediante información textual pertinente; no se reproducen las imágenes de la galería. Victor revisa y confirma desde el panel su selección curricular y orden propios, compartidos por español e inglés; las variantes lingüísticas requieren su aprobación. Una traducción pendiente de un proyecto no seleccionado no bloquea el CV.
 - Se distingue aprobación editorial de publicación técnica: una traducción solo es válida si conserva los hechos vigentes. La gestión de esas aprobaciones reutiliza el flujo administrativo, sin publicar automáticamente traducciones generadas.
 - Una descarga iniciada antes de una publicación puede completar la versión anterior coherente; las solicitudes posteriores deben usar la nueva. Los PDF ya descargados por terceros no se actualizan ni retiran retroactivamente.
 - No se garantiza clasificación favorable en un ATS concreto, contratación ni afiliación a las universidades citadas. Se evalúan estructura, veracidad, lectura y extracción.

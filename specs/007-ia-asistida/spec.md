@@ -8,6 +8,12 @@
 
 **Input**: User description: "Ayudar a Victor a redactar y traducir información del portafolio mediante sugerencias revisables, sin inventar hechos ni depender de servicios de pago."
 
+## Clarifications
+
+### Session 2026-10-27
+
+- Q: ¿Qué debe ocurrir con una sugerencia de IA que aún no hayas aceptado cuando cierres o recargues el editor? → A: Descartar las sugerencias no aceptadas al cerrar o recargar el editor; los borradores guardados siguen el flujo editorial habitual.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Obtener y revisar una sugerencia (Priority: P1)
@@ -62,6 +68,8 @@ Como Victor quiero descartar sugerencias o trabajar sin IA para mantener control
 4. **Given** se alcanza el tiempo o frecuencia permitidos, **When** termina o se rechaza la solicitud, **Then** se informa del límite y de cómo reintentar sin perder texto ni activar costes.
 5. **Given** la respuesta contiene instrucciones maliciosas, **When** se muestra, **Then** se trata como texto sin ejecutar acciones, consultar secretos o modificar datos por instrucciones del modelo.
 6. **Given** uso teclado y lector de pantalla, **When** genero, reviso, edito, acepto, descarto o cancelo, **Then** puedo completar las acciones y percibir generación, resultado, cancelación y error.
+7. **Given** hay una sugerencia no aceptada, **When** cierro o recargo el editor y vuelvo a abrirlo, **Then** la sugerencia no se recupera ni se aplica; los borradores previamente guardados permanecen intactos.
+8. **Given** hay una generación en curso, **When** cierro o recargo el editor y llega una respuesta tardía, **Then** esa respuesta se descarta y no aparece ni se aplica al reabrir el editor.
 
 ### Edge Cases
 
@@ -72,6 +80,7 @@ Como Victor quiero descartar sugerencias o trabajar sin IA para mantener control
 - Edición concurrente, cancelación o sesión vencida antes de recibir respuesta: no sobrescribir el campo ni revelar la propuesta sin autorización vigente.
 - Recursos insuficientes o cuota agotada: mantener funciones manuales, sin contratar servicios ni activar facturación.
 - Datos privados incluidos accidentalmente: bloquear entradas identificadas como no permitidas; el modelo no tiene acceso a la bandeja, credenciales ni contexto privado automático.
+- Cierre o recarga del editor: descartar las sugerencias no aceptadas y las respuestas de generaciones de la revisión anterior; conservar los borradores ya guardados mediante el flujo editorial.
 
 ## Requirements *(mandatory)*
 
@@ -89,11 +98,12 @@ Como Victor quiero descartar sugerencias o trabajar sin IA para mantener control
 - **FR-010**: Ausencia o fallo del modelo NO DEBE impedir editar, guardar, publicar manualmente ni descargar CV con información ya aprobada, ni activar servicios de pago (escenario 3.3).
 - **FR-011**: Solicitar, consultar y aceptar sugerencias DEBE exigir identidad y autorización administrativas vigentes, incluso mediante solicitudes directas o tras caducar una sesión (escenario 1.6 y caso de sesión vencida).
 - **FR-012**: Los flujos completos DEBEN cumplir WCAG 2.1 AA, incluidos teclado, foco, identificación de controles y anuncios accesibles de generación, cancelación y error (escenario 3.6 y evaluación de criterios aplicables).
+- **FR-013**: Las sugerencias no aceptadas DEBEN mantenerse únicamente durante la revisión activa en el editor y descartarse al cerrarlo o recargarlo, sin recuperación posterior ni historial persistente de esas sugerencias. Las respuestas pendientes de esa revisión no se mostrarán ni aplicarán al reabrir. Esta acción no modificará los borradores previamente guardados mediante el flujo editorial (escenarios 3.7 y 3.8).
 
 ### Key Entities
 
 - **Solicitud editorial**: propósito de redacción o traducción, texto seleccionado, contexto editorial mínimo autorizado, versión fuente, idioma destino y estado de generación.
-- **Sugerencia**: texto propuesto, fuente de referencia, idioma y estado no aprobado, editable, aceptado como borrador o descartado.
+- **Sugerencia**: texto propuesto, fuente de referencia, idioma y estado no aprobado, editable, aceptado como borrador o descartado; las sugerencias no aceptadas están limitadas a la revisión activa y se descartan al cerrar o recargar el editor.
 - **Decisión editorial**: aceptación como borrador o descarte por Victor, separada de la aprobación y publicación posteriores.
 - **Modalidad de asistencia**: funcionamiento local inicial, disponibilidad, límites y eventual aprobación explícita de una alternativa remota gratuita y compatible con la privacidad.
 
@@ -110,6 +120,7 @@ Como Victor quiero descartar sugerencias o trabajar sin IA para mantener control
 - **SC-007**: El 100 % de accesos sin permiso, entradas fuera de límites y fallos de generación evaluados se rechaza o finaliza con indicación comprensible sin perder la edición manual.
 - **SC-008**: Los flujos completos presentan cero incumplimientos aplicables de WCAG 2.1 A y AA tras revisión automática y manual con teclado y lector de pantalla.
 - **SC-009**: Con una propuesta de prueba preparada, Victor identifica sin ayuda su estado no aprobado y puede aceptarla como borrador o descartarla en menos de un minuto, distinguiendo ambas acciones de publicar.
+- **SC-010**: En el 100 % de cierres y recargas evaluados, ninguna sugerencia no aceptada ni respuesta pendiente de la revisión anterior se recupera o aplica al reabrir el editor; los borradores previamente guardados permanecen sin cambios.
 
 ## Assumptions
 
@@ -118,7 +129,7 @@ Como Victor quiero descartar sugerencias o trabajar sin IA para mantener control
 - El proveedor remoto no forma parte de la modalidad inicial; su eventual aprobación no se presume por esta especificación. Si no se cumplen gratuidad y privacidad, la asistencia queda indisponible y continúa el trabajo manual.
 - La protección de datos se basa en limitar las fuentes y el contexto autorizado, además de bloquear entradas identificadas como privadas; no se promete detección infalible de cualquier secreto pegado en texto libre. Victor revisará el contenido mostrado antes de enviarlo.
 - La veracidad de una salida generada no se presume: la revisión humana corrige o descarta errores antes de aprobar; no se garantiza que un modelo nunca produzca una afirmación incorrecta.
-- Las sugerencias se mantienen durante la revisión activa; aceptar como borrador reutiliza la conservación editorial existente. No se exige historial permanente de conversaciones ni se reutilizarán solicitudes para entrenamiento. Cualquier conservación adicional deberá definirse y justificarse en planificación.
+- Las sugerencias no aceptadas se mantienen solo durante la revisión activa y se descartan al cerrar o recargar el editor, sin historial persistente ni recuperación en otra sesión. Aceptar como borrador reutiliza el flujo editorial existente y su confirmación de guardado. No se reutilizarán solicitudes para entrenamiento.
 - Quedan fuera chatbot público, respuestas automáticas a visitantes, entrenamiento con mensajes y generación automática de experiencia o logros.
 - La constitución 1.0.0 en `.specify/memory/constitution.md` conserva su autoridad sobre arquitectura, IA, seguridad, gratuidad, revisión humana y validación. Sus decisiones técnicas se concretarán durante planificación sin enmendarlas aquí.
 - Los criterios son objetivos de aceptación, no resultados ya verificados. Las pruebas usarán textos aislados sin datos privados reales, incluyendo salidas incorrectas, fallos, conflictos y revisión manual de accesibilidad.

@@ -8,6 +8,12 @@
 
 **Input**: User description: "Recibir mensajes de visitantes, persistirlos y permitir a Victor gestionarlos de forma privada."
 
+## Clarifications
+
+### Session 2026-10-27
+
+- Q: ¿Durante cuánto tiempo deben conservarse los mensajes desde su recepción antes de eliminarlos automáticamente? → A: 90 días desde la recepción, estén pendientes o revisados; leerlos o cambiar su estado no amplía el plazo.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Enviar un mensaje (Priority: P1)
@@ -61,8 +67,8 @@ Como Victor quiero eliminar mensajes y aplicar su plazo de conservación para ev
 **Acceptance Scenarios**:
 
 1. **Given** selecciono eliminar un mensaje, **When** cancelo la confirmación, **Then** permanece sin cambios; si confirmo y se completa la eliminación, deja de estar disponible en la bandeja y en cantidades actuales.
-2. **Given** un mensaje alcanza el plazo aprobado desde su recepción, **When** se aplica la política, **Then** se elimina independientemente de su estado y queda solo constancia mínima de fecha, motivo y resultado, sin nombre, correo ni texto.
-3. **Given** un mensaje aún no vence, **When** se aplica la conservación sin una eliminación manual, **Then** permanece disponible hasta su vencimiento.
+2. **Given** un mensaje alcanza los 90 días desde su recepción, **When** vence, **Then** se elimina automáticamente independientemente de su estado y queda solo constancia mínima de fecha, motivo y resultado, sin nombre, correo ni texto.
+3. **Given** un mensaje aún no cumple 90 días desde su recepción, **When** se aplica la conservación sin una eliminación manual, **Then** permanece disponible hasta su vencimiento; leerlo o cambiar su estado no reinicia ni amplía el plazo.
 4. **Given** falla la eliminación manual, **When** termina el intento, **Then** se informa del fallo sin confirmar éxito y puede reintentarse.
 5. **Given** no puede garantizarse la eliminación por vencimiento, **When** se detecta el fallo, **Then** se suspende la recepción de nuevos mensajes, se informa al administrador y se reintenta la eliminación sin extender silenciosamente el plazo.
 6. **Given** uso teclado y lector de pantalla, **When** confirmo o cancelo una eliminación, **Then** entiendo la consecuencia, puedo elegir ambas acciones y percibo el resultado.
@@ -75,6 +81,7 @@ Como Victor quiero eliminar mensajes y aplicar su plazo de conservación para ev
 - Mensaje eliminado o vencido antes de un reintento: no se recrea por repetición de la misma solicitud; se indica que su recepción anterior ya no está disponible, sin revelar contenido.
 - Spam o frecuencia excesiva: comunicar espera con controles accesibles, sin ampliar la recogida de datos personales del formulario.
 - Plazo pendiente: no habilitar recepción ni conservar mensajes indefinidamente como alternativa.
+- Límite de conservación: antes de cumplir 90 días el mensaje permanece disponible salvo eliminación manual; al cumplirlos vence y se elimina automáticamente, tanto si está pendiente como revisado.
 - Sesión administrativa vencida: denegar lectura y cambios; reautenticar no repite automáticamente una eliminación.
 - Fallo de conservación: advertir y suspender nuevos envíos; la suspensión no sustituye la obligación de eliminar los datos vencidos.
 
@@ -89,8 +96,8 @@ Como Victor quiero eliminar mensajes y aplicar su plazo de conservación para ev
 - **FR-005**: Solo el administrador autorizado DEBE poder listar, leer, marcar y eliminar mensajes o consultar cantidades privadas; la recepción pública no concederá capacidad de consulta ni acceso general a la bandeja (escenario 2.3).
 - **FR-006**: El sistema DEBE permitir marcar explícitamente pendiente o revisado y conservar el estado; leer no lo modificará automáticamente (escenarios 2.1 y 2.2).
 - **FR-007**: Eliminar manualmente DEBE requerir confirmación. Cancelar no alterará datos; completar la eliminación retirará el mensaje de consultas y cantidades actuales (escenario 3.1).
-- **FR-008**: Un plazo positivo y explícitamente aprobado por Victor y un mecanismo efectivo documentado de eliminación DEBEN existir antes de habilitar la recepción. Sin ellos no se habilitarán campos ni se aceptarán datos de contacto (escenario 1.5).
-- **FR-009**: El sistema DEBE aplicar la conservación desde la fecha de recepción, sin reiniciarla al leer o marcar; eliminará mensajes al vencer, cualquiera que sea su estado, conservando solo fecha, motivo y resultado de la eliminación sin datos del remitente ni contenido (escenarios 3.2 y 3.3).
+- **FR-008**: El plazo aprobado por Victor es de 90 días desde la recepción. Este plazo DEBE estar configurado y debe existir un mecanismo efectivo documentado de eliminación antes de habilitar la recepción. Sin ellos no se habilitarán campos ni se aceptarán datos de contacto (escenario 1.5).
+- **FR-009**: El sistema DEBE eliminar automáticamente los mensajes al cumplir 90 días desde su recepción, cualquiera que sea su estado, sin reiniciar ni ampliar el plazo al leer o marcar; conservará solo fecha, motivo y resultado de la eliminación sin datos del remitente ni contenido (escenarios 3.2 y 3.3).
 - **FR-010**: El sistema DEBE aplicar límites de frecuencia configurables, protección antispam accesible y protección frente a envíos inducidos cuando corresponda; al bloquear informará cuándo reintentar sin guardar otro mensaje (escenario 1.6 y revisión de envíos no autorizados).
 - **FR-011**: El contenido recibido DEBE mostrarse sin ejecutar instrucciones. Los mensajes no se enviarán a IA, registros de diagnóstico ni exportaciones públicas (escenario 2.5 y revisión de las salidas de datos).
 - **FR-012**: Recibir y gestionar mensajes NO DEBE depender de correo saliente o notificaciones externas (historias 1 y 2 verificadas con esas funciones ausentes).
@@ -102,7 +109,7 @@ Como Victor quiero eliminar mensajes y aplicar su plazo de conservación para ev
 ### Key Entities
 
 - **Mensaje**: identificador, nombre, correo de respuesta, contenido, fecha de recepción, vencimiento y estado pendiente o revisado.
-- **Política de conservación**: plazo aprobado por Victor, fecha de vigencia, criterio de vencimiento y condición de habilitación de la recepción.
+- **Política de conservación**: plazo de 90 días desde la recepción aprobado por Victor, fecha de vigencia, criterio de vencimiento y condición de habilitación de la recepción.
 - **Solicitud de contacto**: identidad de un envío y resultado, suficiente para reconocer sus reintentos sin crear mensajes duplicados; no añade campos personales al formulario.
 - **Constancia de eliminación**: fecha, motivo manual o por vencimiento y resultado, sin nombre, correo ni texto del mensaje.
 
@@ -113,7 +120,7 @@ Como Victor quiero eliminar mensajes y aplicar su plazo de conservación para ev
 - **SC-001**: El 100 % de confirmaciones evaluadas corresponde a exactamente un mensaje persistido por solicitud, incluso con doble pulsación y pérdida de confirmación.
 - **SC-002**: Cero visitantes e identidades sin permiso evaluados pueden consultar contenido, remitentes o cantidades privadas, ni modificar mensajes.
 - **SC-003**: El 100 % de entradas inválidas definidas se rechaza sin persistencia y con indicación accesible; se aceptan los límites válidos exactos.
-- **SC-004**: El 100 % de mensajes vencidos evaluados se elimina conforme al plazo aprobado, sin depender de estar pendientes o revisados; las constancias contienen cero datos de remitentes o textos.
+- **SC-004**: El 100 % de mensajes evaluados que no se hayan eliminado manualmente se elimina automáticamente al cumplir 90 días desde su recepción, sin depender de estar pendientes o revisados; leer o marcar no altera su vencimiento y las constancias contienen cero datos de remitentes o textos.
 - **SC-005**: Sin plazo aprobado o mecanismo efectivo, el 100 % de intentos de recepción se bloquea sin aceptar datos de contacto. Los fallos de conservación evaluados suspenden nuevos envíos y generan aviso al administrador.
 - **SC-006**: El 100 % de cambios de estado y eliminaciones confirmados se refleja al reabrir la bandeja; cancelar produce cero cambios y los fallos no producen confirmaciones falsas.
 - **SC-007**: Los flujos completos presentan cero incumplimientos aplicables de WCAG 2.1 A y AA tras evaluación automática y revisión manual con teclado y lector de pantalla.
@@ -122,7 +129,7 @@ Como Victor quiero eliminar mensajes y aplicar su plazo de conservación para ev
 ## Assumptions
 
 - La bandeja depende de `002-administracion`; recepción y conservación pueden evaluarse con persistencia e identidades aisladas.
-- El plazo de conservación es una decisión expresamente pendiente de Victor. Bloquea la activación pública, no la elaboración de esta especificación ni su planificación; no se inventa un valor ni se presume aprobación. Las pruebas usarán un plazo exclusivamente de prueba.
+- Victor aprobó un plazo de conservación de 90 días desde la recepción en la sesión de aclaración de 2026-10-27. La activación pública sigue condicionada a configurar ese plazo y verificar el mecanismo efectivo de eliminación. Las pruebas usarán datos aislados y tiempo controlado para evaluar los límites sin esperar 90 días reales.
 - Los límites de longitud son propuestas iniciales del adjunto. Para evaluar caracteres se considerarán caracteres Unicode, no bytes; se conservarán espacios interiores y saltos de línea del mensaje.
 - El umbral y la ventana antispam se definirán durante planificación según la cuota gratuita y se comprobarán antes de habilitar recepción. También se documentarán la cobertura de reintentos, el período mínimo de reconocimiento de una misma solicitud y el tratamiento de copias de respaldo para cumplir la conservación sin duplicar contenido privado.
 - El vencimiento se calcula desde la recepción; leer o cambiar de estado no lo extiende. El plazo aprobado debe incluir las garantías efectivas de eliminación, sin retención indefinida ni tolerancias ocultas.
