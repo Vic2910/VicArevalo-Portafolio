@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}{% if page.profile.state == 'ready' %}{{ page.profile.data.full_name }} · Perfil público{% elif page.profile.state == 'unavailable' %}Perfil temporalmente no disponible{% else %}Perfil aún no disponible{% endif %}{% endblock %}
+{% block navigation %}
+<ul>
+{% if page.profile.state == 'ready' %}
+  <li><a href="#perfil">Perfil</a></li>
+  {% if page.skills.state != 'empty' %}<li><a href="#conocimientos">Conocimientos</a></li>{% endif %}
+  {% if page.academic.state != 'empty' %}<li><a href="#experiencia-academica">Experiencia académica</a></li>{% endif %}
+{% endif %}
+{% for destination in page.destinations %}
+  <li data-destination="{{ destination.key }}">{% if destination.available %}<a href="{{ destination.url }}">{{ destination.label }}</a>{% else %}<span>{{ destination.label }} <small>No disponible por ahora</small></span>{% endif %}</li>
+{% endfor %}
+</ul>
+{% endblock %}
+{% block content %}
+{% if page.profile.state == 'ready' %}
+<section id="perfil" class="intro" aria-labelledby="nombre">
+  <p class="eyebrow">Perfil</p>
+  <h1 id="nombre">{{ page.profile.data.full_name }}</h1>
+  <p class="degree">{{ page.profile.data.degree }}</p>
+  {% if page.profile.data.summary %}<p class="summary">{{ page.profile.data.summary }}</p>{% endif %}
+  {% if page.profile.data.public_contacts %}<ul class="contacts">{% for contact in page.profile.data.public_contacts %}<li><a href="{{ contact.href }}">{{ contact.label }}</a></li>{% endfor %}</ul>{% endif %}
+</section>
+{% if page.skills.state != 'empty' %}
+<section id="conocimientos" aria-labelledby="titulo-conocimientos">
+  <h2 id="titulo-conocimientos">Conocimientos</h2>
+  {% if page.skills.state == 'unavailable' %}<p>No podemos mostrar los conocimientos en este momento. Inténtalo más tarde.</p>
+  {% else %}<ul class="cards">{% for skill in page.skills.data %}<li><h3>{{ skill.name }}</h3>{% if skill.description %}<p>{{ skill.description }}</p>{% endif %}</li>{% endfor %}</ul>{% endif %}
+</section>
+{% endif %}
+{% if page.academic.state != 'empty' %}
+<section id="experiencia-academica" aria-labelledby="titulo-academico">
+  <h2 id="titulo-academico">Experiencia académica</h2>
+  {% if page.academic.state == 'unavailable' %}<p>No podemos mostrar la experiencia académica en este momento. Inténtalo más tarde.</p>
+  {% else %}<ul class="academic">{% for item in page.academic.data %}<li>
+    <h3>{{ item.activity }}</h3>
+    {% if item.institution %}<p>{{ item.institution }}</p>{% endif %}
+    {% if item.start_date or item.end_date or item.ongoing %}<p class="dates">{% if item.start_date %}Fecha inicial: <time datetime="{{ item.start_date }}">{{ item.start_date }}</time>{% endif %}{% if item.end_date %} · Fecha final: <time datetime="{{ item.end_date }}">{{ item.end_date }}</time>{% endif %}{% if item.ongoing %} · Actualidad{% endif %}</p>{% endif %}
+    {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+  </li>{% endfor %}</ul>{% endif %}
+</section>
+{% endif %}
+{% elif page.profile.state == 'empty' %}
+<section class="intro"><h1>Perfil aún no disponible</h1></section>
+{% else %}
+<section class="intro"><h1>Perfil temporalmente no disponible</h1><p>No podemos mostrar el perfil en este momento. Inténtalo más tarde.</p></section>
+{% endif %}
+{% endblock %}

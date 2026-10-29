@@ -1,57 +1,74 @@
-# Quickstart de validación: 001-perfil-publico
+# Validación local: 001-perfil-publico
 
-Guía para la futura implementación: hoy solo existen documentos. No se han creado aplicación, lock, migraciones ni pruebas. Estos comandos son el contrato de validación previsto, no evidencia de ejecución.
+Implementación Flask/Jinja local. Sin configuración de Supabase, GET / muestra HTTP 503 sin contenido ficticio. La aplicación no carga automáticamente archivos .env.
 
-## Preparación
+## Instalación y ejecución (PowerShell desde la raíz)
 
-Python 3.12; dependencias bloqueadas; Supabase Free aislado con esquema/políticas de contracts/public-data.md y fixtures sintéticos. Sin producción ni facturación. Mocks permiten evaluar aplicación sin red; RLS exige servicio real. Aprovisionar/limpiar fixtures mediante operador autorizado fuera del cliente público.
+```powershell
+uv python install 3.12
+uv sync --locked
+```
 
-Desde raíz del repositorio, PowerShell:
+Alternativa con Python 3.12 instalado:
 
 ```powershell
 py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.lock
-$env:SUPABASE_URL = '<URL de prueba>'
-$env:SUPABASE_PUBLISHABLE_KEY = '<clave publicable de prueba>'
-.\.venv\Scripts\python.exe -m flask --app app:create_app run
+.\.venv\Scripts\python.exe -m pip install --require-hashes -r requirements.lock
 ```
 
-Variables por entorno protegido, nunca valores reales en docs o repositorio; .env.example vacío y secretos ignorados. No service_role. Servidor de desarrollo solo local.
-
-## Automatización prevista
+Configurar SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY y PUBLIC_READ_TIMEOUT_SECONDS mediante entorno protegido. Solo claves publicables o anon compatibles; nunca service_role ni sb_secret. HTTP únicamente para localhost/127.0.0.1, HTTPS para proveedor remoto.
 
 ```powershell
+.\.venv\Scripts\python.exe -m flask --app app:create_app run --host 127.0.0.1
 .\.venv\Scripts\python.exe -m pytest tests/unit tests/contract -q
 .\.venv\Scripts\python.exe -m pytest tests/integration -m rls -q
 ```
 
-Suite RLS recibe TEST_SUPABASE_URL, TEST_SUPABASE_PUBLISHABLE_KEY y TEST_NONADMIN_ACCESS_TOKEN por entorno. Sin variables, omitir explícitamente y reportar aceptación de seguridad incompleta; skip nunca equivale a PASS.
+## Migraciones y Supabase aislado
 
-| Escenario | Resultado | Trazabilidad |
-|---|---|---|
-| Identidad aprobada y campos pendientes | Datos exactos, omisión sin marcadores | US1, FR-001/007, SC-001 |
-| Borradores/contactos privados centinela | Ausentes en HTML y API directa, incluso select=* y UUID | FR-003, SC-001 |
-| Conocimiento y actividad publicados | Orden, fechas conocidas y datos aprobados; sin empleo ni porcentaje | US2, FR-002/005 |
-| Vacío y solo borradores en cada combinación | Sin sección ni ancla ni mensaje vacío | FR-007, SC-004 |
-| Timeout, cuota, pausa, datos inválidos por recurso | Estado previsto, resto válido conservado, sin error privado | FR-007, SC-004 |
-| Perfil vacío/fallido | 200/503 respectivamente; sin hijos ni identidad fallback | FR-001/003/007 |
-| Retirada y edición pendiente | Retirada invisible con hijos; borrador no altera publicación | FR-001/003 |
-| Anon y autenticado no administrador | Solo SELECT aprobado, mutaciones sin efecto y privados inaccesibles | FR-003, SC-001 |
-| Destinos disponibles/no disponibles | Enlace correcto o texto sin acción aparente | FR-004, SC-004 |
-| HTML, URL peligrosa y texto largo | Escape, rechazo de esquema y wrapping | FR-005/008 |
-| Más de 100 registros | Paginación completa ordenada o error al agotar plazo; nunca truncar | FR-003/007 |
+Usar exclusivamente un proyecto Free de prueba vacío o Supabase local, nunca producción ni activar facturación. No ejecutar reset/push contra un proyecto productivo. Esta entrega no enlaza proyectos remotos.
 
-## Revisión visual y WCAG
+La CLI generó config.toml y las migraciones 20261028003054_public_profiles.sql y 20261028003106_public_collections.sql. Sus nombres difieren del ejemplo en tasks.md porque los creó la CLI con la fecha UTC actual. Consultar la ayuda de cada comando antes de operar. En un entorno local con Docker preparado:
 
-Abrir sitio local con fixtures, evaluar estados completos, parciales, vacíos y fallidos. Ejecutar herramienta gratuita como axe y complementar manualmente todos los criterios A/AA de WCAG 2.1, justificando cada no aplicable.
+```powershell
+npm exec --yes --package=supabase -c 'supabase start --help'
+npm exec --yes --package=supabase -c 'supabase migration up --help'
+npm exec --yes --package=supabase -c 'supabase start'
+npm exec --yes --package=supabase -c 'supabase migration up --local'
+```
 
-1. Tab/Shift+Tab/Enter y skip link: orden lógico, foco visible, sin trampas y nombres claros.
-2. Lector de pantalla (por ejemplo NVDA): idioma, título, regiones, encabezados, enlaces y errores comprensibles, sin depender de live regions iniciales.
-3. Texto 200 %, viewport 320 px CSS, móvil/escritorio y ambas orientaciones: sin pérdidas ni scroll horizontal no justificado, incluso texto/URLs largos.
-4. Medir contrastes de texto/foco/componentes y señales independientes de color. Revisar espaciado de texto, hover/focus y alternativas de imágenes si se incorporan.
-5. Movimiento reducido y JavaScript desactivado: conservar información y navegación.
-6. Completar matriz del resto de criterios aplicables, incluidos lectura, enlaces, consistencia, destellos y tiempos: criterio, escenario, resultado, evidencia y defectos.
+Alternativa: operador autorizado aplica ambos SQL en orden mediante psql/psycopg a base aislada vacía. private no está expuesto; grants y RLS son explícitos. No hay borradores reales ni publicación automática.
 
-## Evidencia y aceptación
+## RLS real de PostgreSQL
 
-Registrar commit, versiones, entorno, resultados Pytest, evidencia RLS sanitizada, herramientas y matriz WCAG. No incluir tokens ni datos privados. Contenido real exige aprobación de Victor. Aceptar solo sin defectos funcionales, de privacidad o accesibilidad aplicables. La planificación no acredita conformidad ni pruebas ya superadas.
+La suite implementada usa TEST_ISOLATED=1 y TEST_DATABASE_URL (DSN del operador de pruebas). Crea fixtures sintéticos en transacción sobre base sin perfiles, cambia a anon/authenticated y revierte al terminar. No requiere credenciales privilegiadas en la aplicación.
+
+Se verificó con PostgreSQL 17 en clúster independiente .postgres-test, puerto 55432. Para reproducir con PostgreSQL instalado, inicializar un clúster NUEVO con propietario portfolio_test, puerto 55432 y escucha exclusiva en 127.0.0.1. No reutilizar el servicio existente. tests/integration/bootstrap_local.py crea roles NOLOGIN, base portfolio_rls_test y aplica migraciones; se niega a repetir si existe anon. Autenticación trust solo para ese clúster local efímero; detenerlo después de probar.
+
+```powershell
+.\.venv\Scripts\python.exe tests/integration/bootstrap_local.py
+$env:TEST_ISOLATED = '1'
+# Configurar TEST_DATABASE_URL mediante un mecanismo protegido externo.
+.\.venv\Scripts\python.exe -m pytest tests/integration -m rls -q
+```
+
+Sin variables: skip explícito, seguridad incompleta. Esto no sustituye la prueba pendiente por Data API/JWT de Supabase. TEST_SUPABASE_URL, TEST_SUPABASE_PUBLISHABLE_KEY y TEST_NONADMIN_ACCESS_TOKEN están reservadas para completar esa prueba; aún no las consume una suite HTTP real. Verificar select=*, UUID, joins, privados, mutaciones sin efecto y DB posterior.
+
+Limpieza: rollback automático de fixtures. Detener únicamente el clúster local con pg_ctl -D .postgres-test -m fast -w stop. No eliminar/mover recursivamente rutas calculadas. El clúster está ignorado en Git. No copiar secretos ni logs privados a evidencias.
+
+## Vista sintética y accesibilidad
+
+```powershell
+$env:PYTHONPATH = '.'
+.\.venv\Scripts\python.exe tests/preview.py
+```
+
+Abrir http://127.0.0.1:5051. Parámetros: ?state=empty, ?state=unavailable, ?skills=unavailable&academic=ready. Vista exclusiva de pruebas, separada de app:create_app. Detener con Ctrl+C.
+
+tests/browser-audit.cjs usa Playwright incluido en Codex, Chrome instalado y AXE_SCRIPT_PATH apuntando a axe.min.js. En otro entorno instalar Playwright/axe gratuitos y adaptar la ruta del runtime. CHROME_PATH permite seleccionar Chrome. Ejecutar node tests/browser-audit.cjs; AXE_SCRIPT_PATH es obligatorio para afirmar auditoría axe. Produce capturas y JSON sintéticos en evidence/.
+
+Completar teclado, NVDA gratuito y todos los criterios A/AA de accessibility.md. Revisar 320 px, texto 200 %, orientación, contraste, espaciado, contenido largo, movimiento reducido y ausencia de JS. Axe no acredita conformidad por sí solo.
+
+## Límites
+
+No hay despliegue, panel ni features 002–007. Proyectos/contacto/CV siguen indisponibles hasta registrar endpoint y capacidad en PUBLIC_DESTINATIONS; CV exige approved_variant. Contenido real requiere aprobación de Victor. Ver validation.md; tareas pendientes permanecen abiertas.

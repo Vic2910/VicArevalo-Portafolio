@@ -1,0 +1,12 @@
+[project]
+name = "portafolio-vicarevalo"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = ["Flask==3.1.3", "Jinja2==3.1.6", "supabase==2.33.0"]
+
+[dependency-groups]
+dev = ["pytest==8.4.2", "beautifulsoup4==4.15.0", "psycopg[binary]==3.3.6"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["rls: requires an explicitly isolated Supabase test database"]
